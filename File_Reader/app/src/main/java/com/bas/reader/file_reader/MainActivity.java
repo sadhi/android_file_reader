@@ -11,6 +11,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.GridLayout;
+import android.widget.TextView;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,14 +24,15 @@ import java.net.URL;
 
 public class MainActivity extends AppCompatActivity {
 
-    private EditText editText;
+    protected EditText editText;
+    protected Contact contact;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        editText = (EditText) findViewById(R.id.textView);
+        editText = (EditText) findViewById(R.id.urlView);
     }
 
     @Override
@@ -68,8 +71,11 @@ public class MainActivity extends AppCompatActivity {
             //I should not do this, really annoying if you have to retype the url...
             //TODO: I should show the error on another way
             editText.setText("No network connection available.");
+
         }
     }
+
+
 
     // Uses AsyncTask to create a task away from the main UI thread. This task takes a
     // URL string and uses it to create an HttpUrlConnection. Once the connection
@@ -90,7 +96,10 @@ public class MainActivity extends AppCompatActivity {
         // onPostExecute displays the results of the AsyncTask.
         @Override
         protected void onPostExecute(String result) {
-            editText.setText(result);   //TODO: Create a new contact
+            if(!result.equals("Unable to retrieve web page. URL may be invalid.")) {
+                contact = new Contact(result);
+                displayContact();
+            }
         }
 
         // Given a URL, establishes an HttpUrlConnection and retrieves
@@ -116,8 +125,8 @@ public class MainActivity extends AppCompatActivity {
                 is = conn.getInputStream();
 
                 // Convert the InputStream into a string
-                String contentAsString = readIt(is, len);
-                return contentAsString;
+                return readIt(is, len);
+
 
                 // Makes sure that the InputStream is closed after the app is
                 // finished using it.
@@ -134,7 +143,54 @@ public class MainActivity extends AppCompatActivity {
             reader = new InputStreamReader(stream, "UTF-8");
             char[] buffer = new char[len];
             reader.read(buffer);
-            return new String(buffer);
+            char[] buf = new char[len];
+            char c;
+            int j = 0;
+            for(int i = 0; i < len; i++)
+            {
+                c = buffer[i];
+                switch (c)
+                {
+                    case '[':
+                        break;
+                    case ']':
+                        break;
+                    case '{':
+                        break;
+                    case '}':
+                        break;
+                    case '"':
+                        break;
+                    case ',':
+                        break;
+                    default:
+                    buf[j] = c;
+                    j++;
+                }
+            }
+            return new String(buf);
+        }
+
+        //if the contact has been filled display it
+        public void displayContact()
+        {
+            if(contact!=null)
+            {
+                TextView fname = (TextView) findViewById(R.id.firstNameView);
+                fname.setText(contact.getFirstName());
+                TextView lname = (TextView) findViewById(R.id.lastNameView);
+                lname.setText(contact.getLastName());
+                TextView age = (TextView) findViewById(R.id.ageView);
+                age.setText(contact.getAge());
+
+                TextView street = (TextView) findViewById(R.id.streetView);
+                street.setText(contact.getAdres());
+
+                TextView num = (TextView) findViewById(R.id.phoneView);
+                num.setText(contact.getNumber());
+                TextView fax = (TextView) findViewById(R.id.faxView);
+                fax.setText(contact.getFax());
+            }
         }
     }
 }
